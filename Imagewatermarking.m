@@ -75,14 +75,38 @@ varargout{1} = handles.output;
 
 % --- Executes on button press in btnBrowseOriginal.
 function btnBrowseOriginal_Callback(hObject, eventdata, handles)
+axes(handles.axes1);
+v_test = 1
 [filename pathname] = uigetfile('*.jpg;*.png;*.bmp', 'Pick any file');
 if isequal(filename,0)
     disp('User selected Cancel');
 else
     p = imread([pathname, filename]);
-    p = imresize(p, [400, 400]);
+    %p = imresize(p, [400, 400]);
+    handles.originalImage = p;
+    guidata(hObject, handles);
+    OIm = p;
+    watermark = 0;
+    if isfield(handles, 'watermarkImage')
+        watermark = handles.watermarkImage;
+    end
+    if exist('watermark', 'var')
+        alpha = 1;%0.5;
+        [m, n,~]=size(watermark);
+        Sz = [50 50];
+        at = 0.5;
+        tmpWatermark=(1-at)*watermark + at.*OIm(Sz(1):Sz(1)+m-1,Sz(2):Sz(2)+n-1,:);
+        %figure,imshow(OtherLogo);title('Test in the centre');
 
-    imshow(p);
+        %Apply watermark
+        OIm(Sz(1):Sz(1)+m-1,Sz(2):Sz(2)+n-1,:)=(1-alpha)*OIm(Sz(1):Sz(1)+m-1,Sz(2):Sz(2)+n-1,:) + alpha.*tmpWatermark;
+        %figure,imshow(OIm);title('Watermark in the centre');
+    end
+    
+    %imshow(p);
+    imshow(OIm);
+    handles.finalImage = OIm;
+    guidata(hObject, handles);
 end
 
 
@@ -92,10 +116,40 @@ function btnBrowseWatermark_Callback(hObject, eventdata, handles)
 if isequal(filename,0)
     disp('User selected Cancel');
 else
-    p = imread([pathname, filename]);
-    p = imresize(p, [400, 400]);
+    %[Logo, map, alphachannel] = imread('images/logo.png');
+    %image(Logo, 'AlphaData', alphachannel);
+    [p, ~, alphachannel] = imread([pathname, filename]);
+    image(p, 'AlphaData', alphachannel);
+    p = imresize(p, [150, 150]);
 
-    imshow(p);
+    %imshow(p);
+    handles.watermarkImage = p;
+    guidata(hObject, handles);
+    
+    OIm = p;
+    originalImage = 0;
+    if isfield(handles, 'originalImage')
+        originalImage = handles.originalImage;
+        OIm = originalImage;
+    end
+    if exist('originalImage', 'var')
+        alpha = 1;%0.5;
+        [m, n,~]=size(p);
+        Sz = [50 50];
+        at = 0.5;
+        tmpWatermark=(1-at)*p + at.*OIm(Sz(1):Sz(1)+m-1,Sz(2):Sz(2)+n-1,:);
+        %figure,imshow(OtherLogo);title('Test in the centre');
+
+        %Apply watermark
+        OIm(Sz(1):Sz(1)+m-1,Sz(2):Sz(2)+n-1,:)=(1-alpha)*OIm(Sz(1):Sz(1)+m-1,Sz(2):Sz(2)+n-1,:) + alpha.*tmpWatermark;
+        %figure,imshow(OIm);title('Watermark in the centre');
+    end
+    
+    %imshow(p);
+    imshow(OIm);
+    
+    handles.finalImage = OIm;
+    guidata(hObject, handles);
 end
 
 
@@ -103,6 +157,16 @@ end
 function btnSave_Callback(hObject, eventdata, handles)
 filter = {'*.png';'*.jpg';'*.bmp';'*.*'};
 [file,path] = uiputfile(filter, 'Save Watermarked Image', 'watermarked.png');
+if isequal(file,0)
+    disp('User selected Cancel');
+else
+    if isfield(handles, 'finalImage')
+        finalImage = handles.finalImage;
+    
+        imwrite(finalImage, [path, file]);
+    end
+    
+end
 
 
 % --- Executes on button press in btnClose.
