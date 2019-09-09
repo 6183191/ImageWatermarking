@@ -76,7 +76,7 @@ varargout{1} = handles.output;
 % --- Executes on button press in btnBrowseOriginal.
 function btnBrowseOriginal_Callback(hObject, eventdata, handles)
 axes(handles.axes1);
-v_test = 1
+%v_test = 1
 [filename pathname] = uigetfile('*.jpg;*.png;*.bmp', 'Pick any file');
 if isequal(filename,0)
     disp('User selected Cancel');
