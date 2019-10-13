@@ -6,9 +6,12 @@ function image = watermarking(original, watermark)
         length = cols;
     end
     
-    waterimage_size = length * 0.1;
+    waterimage_size = length * 0.2;
+    [w, h,~]=size(watermark);
+%     if w > waterimage_size
+%         watermark = imresize_nn(watermark, waterimage_size, waterimage_size);    
+%     end
     watermark = imresize_nn(watermark, waterimage_size, waterimage_size);    
-    %watermark = imresize(watermark, [waterimage_size, waterimage_size]);    
     [w_rows, w_cols,~]=size(watermark);
     
     alpha = 1; %0.5;
