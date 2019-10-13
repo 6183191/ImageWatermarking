@@ -46,109 +46,61 @@ end
 
 % --- Executes just before Imagewatermarking is made visible.
 function Imagewatermarking_OpeningFcn(hObject, eventdata, handles, varargin)
-% This function has no output args, see OutputFcn.
-% hObject    handle to figure
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-% varargin   command line arguments to Imagewatermarking (see VARARGIN)
-
-% Choose default command line output for Imagewatermarking
 handles.output = hObject;
-
 % Update handles structure
 guidata(hObject, handles);
-
-% UIWAIT makes Imagewatermarking wait for user response (see UIRESUME)
-% uiwait(handles.figure1);
 
 
 % --- Outputs from this function are returned to the command line.
 function varargout = Imagewatermarking_OutputFcn(hObject, eventdata, handles) 
-% varargout  cell array for returning output args (see VARARGOUT);
-% hObject    handle to figure
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Get default command line output from handles structure
 varargout{1} = handles.output;
 
 
 % --- Executes on button press in btnBrowseOriginal.
 function btnBrowseOriginal_Callback(hObject, eventdata, handles)
 axes(handles.axes1);
-v_test = 1
-[filename pathname] = uigetfile('*.jpg;*.png;*.bmp', 'Pick any file');
+[filename, pathname] = uigetfile('*.jpg;*.png;*.bmp', 'Pick any file');
 if isequal(filename,0)
     disp('User selected Cancel');
 else
-    p = imread([pathname, filename]);
-    %p = imresize(p, [400, 400]);
-    handles.originalImage = p;
-    guidata(hObject, handles);
-    OIm = p;
-    watermark = 0;
+    originalImage = imread([pathname, filename]);
+  
+    % get watermark image
+    finalImage = originalImage;
     if isfield(handles, 'watermarkImage')
         watermark = handles.watermarkImage;
-    end
-    if exist('watermark', 'var')
-        alpha = 1;%0.5;
-        [m, n,~]=size(watermark);
-        Sz = [50 50];
-        at = 0.5;
-        tmpWatermark=(1-at)*watermark + at.*OIm(Sz(1):Sz(1)+m-1,Sz(2):Sz(2)+n-1,:);
-        %figure,imshow(OtherLogo);title('Test in the centre');
-
-        %Apply watermark
-        OIm(Sz(1):Sz(1)+m-1,Sz(2):Sz(2)+n-1,:)=(1-alpha)*OIm(Sz(1):Sz(1)+m-1,Sz(2):Sz(2)+n-1,:) + alpha.*tmpWatermark;
-        %figure,imshow(OIm);title('Watermark in the centre');
+        finalImage = watermarking(originalImage, watermark);
     end
     
-    %imshow(p);
-    imshow(OIm);
-    handles.finalImage = OIm;
+    imshow(finalImage);
+    
+    handles.originalImage = originalImage;
+    handles.finalImage = finalImage;
     guidata(hObject, handles);
 end
 
 
 % --- Executes on button press in btnBrowseWatermark.
 function btnBrowseWatermark_Callback(hObject, eventdata, handles)
-[filename pathname] = uigetfile('*.jpg;*.png;*.bmp', 'Pick any file');
+[filename, pathname] = uigetfile('*.jpg;*.png;*.bmp', 'Pick any file');
 if isequal(filename,0)
     disp('User selected Cancel');
 else
-    %[Logo, map, alphachannel] = imread('images/logo.png');
-    %image(Logo, 'AlphaData', alphachannel);
-    [p, ~, alphachannel] = imread([pathname, filename]);
-    image(p, 'AlphaData', alphachannel);
-    p = imresize(p, [150, 150]);
-
-    %imshow(p);
-    handles.watermarkImage = p;
-    guidata(hObject, handles);
+    [watermark, ~, alphachannel] = imread([pathname, filename]);
+    image(watermark, 'AlphaData', alphachannel);
+    finalImage = watermark;
     
-    OIm = p;
-    originalImage = 0;
+    % get original image
     if isfield(handles, 'originalImage')
         originalImage = handles.originalImage;
-        OIm = originalImage;
-    end
-    if exist('originalImage', 'var')
-        alpha = 1;%0.5;
-        [m, n,~]=size(p);
-        Sz = [50 50];
-        at = 0.5;
-        tmpWatermark=(1-at)*p + at.*OIm(Sz(1):Sz(1)+m-1,Sz(2):Sz(2)+n-1,:);
-        %figure,imshow(OtherLogo);title('Test in the centre');
-
-        %Apply watermark
-        OIm(Sz(1):Sz(1)+m-1,Sz(2):Sz(2)+n-1,:)=(1-alpha)*OIm(Sz(1):Sz(1)+m-1,Sz(2):Sz(2)+n-1,:) + alpha.*tmpWatermark;
-        %figure,imshow(OIm);title('Watermark in the centre');
+        finalImage = watermarking(originalImage, watermark);
     end
     
-    %imshow(p);
-    imshow(OIm);
+    imshow(finalImage);
     
-    handles.finalImage = OIm;
+    %save file to gui data
+    handles.watermarkImage = watermark;
+    handles.finalImage = finalImage;
     guidata(hObject, handles);
 end
 
@@ -168,10 +120,6 @@ else
     
 end
 
-
 % --- Executes on button press in btnClose.
 function btnClose_Callback(hObject, eventdata, handles)
-% hObject    handle to btnClose (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
 close;
